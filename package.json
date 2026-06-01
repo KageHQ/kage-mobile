@@ -2,6 +2,7 @@
   "name": "@kagehq/mobile",
   "version": "0.0.0",
   "private": true,
+  "main": "index.js",
   "scripts": {
     "postinstall": "mkdir -p assets && cp node_modules/@kagehq/circuits/build/age_kyc_js/age_kyc.wasm assets/ && cp node_modules/@kagehq/circuits/build/age_kyc.zkey assets/",
     "test": "jest",
