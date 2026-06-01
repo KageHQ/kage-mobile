@@ -1,9 +1,17 @@
 {
   "expo": {
-    "name": "proven-kyc",
+    "name": "Kage",
     "slug": "proven-kyc",
     "version": "1.0.0",
     "platforms": ["ios", "android"],
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F4EF",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FEFDFB"
+    },
     "assetBundlePatterns": ["assets/*"]
   }
 }

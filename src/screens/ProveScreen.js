@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View } from "react-native";
 import { loadCredential } from "../credentialStore";
 import { generateProofPayload, publishPayload } from "../prover";
@@ -7,16 +7,14 @@ import {
   Screen,
   Brandmark,
   H1,
-  H2,
   Lead,
-  Body,
   Caption,
   Button,
   Callout,
-  Badge,
   CodeDisplay,
+  LoadingModal,
 } from "../components/ui";
-import { color, space, radius } from "../theme";
+import { space } from "../theme";
 
 // The event this proof is for. The nullifier is scoped to it, so one identity
 // can prove at different events but not twice at the same one. In a real flow
@@ -30,18 +28,12 @@ const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE, scop
 // The prover service is the issuer (same host). Override via EXPO_PUBLIC_ISSUER_URL.
 const PROVER_URL = process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
 
-export default function ProveScreen({ onReset }) {
+// "Bukti" tab: the single primary task — generate a one-time relay code. The
+// device-local profile lives on the Identitas tab; reset lives on Pengaturan.
+export default function ProveScreen() {
   const [code, setCode] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [profile, setProfile] = useState(null);
-
-  // Show the device-local PII collected at onboarding. Never leaves the device.
-  useEffect(() => {
-    loadCredential()
-      .then((c) => setProfile(c.profile || null))
-      .catch(() => setProfile(null));
-  }, []);
 
   async function onProve() {
     setBusy(true);
@@ -59,29 +51,10 @@ export default function ProveScreen({ onReset }) {
     }
   }
 
-  const hasProfile =
-    profile && (profile.fullName || profile.placeOfBirth || profile.address);
-
   return (
-    <Screen>
+    <Screen floating>
+      <LoadingModal visible={busy} label="Membuat bukti…" />
       <Brandmark />
-
-      {hasProfile && (
-        <View style={styles.profile}>
-          {profile.fullName ? <H2>{profile.fullName}</H2> : null}
-          {profile.placeOfBirth ? (
-            <Body style={{ color: color.inkMuted }}>
-              Lahir di {profile.placeOfBirth}
-            </Body>
-          ) : null}
-          {profile.address ? (
-            <Body style={{ color: color.inkMuted }}>{profile.address}</Body>
-          ) : null}
-          <View style={{ marginTop: space[2] }}>
-            <Badge label="Di perangkat ini · tidak ada dalam bukti" tone="device" />
-          </View>
-        </View>
-      )}
 
       {!code && (
         <View style={{ marginTop: space[7], gap: space[3] }}>
@@ -124,27 +97,6 @@ export default function ProveScreen({ onReset }) {
           )}
         </View>
       )}
-
-      <View style={styles.resetWrap}>
-        <Button
-          title="Ganti NIK (atur ulang kredensial)"
-          variant="ghostDanger"
-          onPress={onReset}
-        />
-      </View>
     </Screen>
   );
 }
-
-const styles = {
-  profile: {
-    marginTop: space[6],
-    gap: space[1],
-    padding: space[4],
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-    borderRadius: radius.lg,
-  },
-  resetWrap: { marginTop: space[9] },
-};
