@@ -1,5 +1,7 @@
 const { groth16 } = require("snarkjs");
-const { encodeProofPayload } = require("@kagehq/shared");
+// Import the codec subpath directly — pulling the package root would also load
+// the credential lib (circomlibjs -> Node "assert"), which mobile never needs.
+const { encodeProofPayload } = require("@kagehq/shared/src/proof-codec");
 
 // Pure: map a stored credential + verification request into circuit inputs.
 function buildCircuitInput(cred, { currentDateInt, currentYY, minAge }) {
