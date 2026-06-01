@@ -1,3 +1,17 @@
 .npmrc
 node_modules
-assets/
+
+# Keep assets ignored except the brand logo (needed by CI for icon + splash).
+assets/*
+!assets/logo.png
+
+# Generated native projects (expo prebuild) — rebuilt in CI.
+android/
+ios/
+
+# Expo
+.expo/
+
+# Release signing — NEVER commit these.
+*.keystore
+release-keystore-secrets.txt
