@@ -1,33 +1,25 @@
-const { groth16 } = require("snarkjs");
-// Import the codec subpath directly — pulling the package root would also load
-// the credential lib (circomlibjs -> Node "assert"), which mobile never needs.
+// snarkjs.fullProve is too heavy for Expo Go / Hermes, so proving runs on the
+// local prover service (the issuer's /prove endpoint). The phone posts its
+// stored credential, gets a real Groth16 proof back, and encodes the QR locally.
 const { encodeProofPayload } = require("@kagehq/shared/src/proof-codec");
 
-// Pure: map a stored credential + verification request into circuit inputs.
-function buildCircuitInput(cred, { currentDateInt, currentYY, minAge }) {
-  if (!/^\d{16}$/.test(cred.nik)) throw new Error("bad NIK in credential");
-  return {
-    nik: cred.nik.split(""),
-    name: String(cred.name),
-    secret: String(cred.secret),
-    Ax: cred.pubKey.Ax,
-    Ay: cred.pubKey.Ay,
-    R8x: cred.signature.R8x,
-    R8y: cred.signature.R8y,
-    S: cred.signature.S,
-    currentDateInt: String(currentDateInt),
-    currentYY: String(currentYY),
-    minAge: String(minAge),
-    nullifierHash: cred.nullifierHash,
-  };
-}
-
-// Generates the proof and returns the QR payload string.
-// wasmUri/zkeyUri are local asset URIs bundled in the app.
-async function generateProofPayload(cred, request, wasmUri, zkeyUri) {
-  const input = buildCircuitInput(cred, request);
-  const { proof, publicSignals } = await groth16.fullProve(input, wasmUri, zkeyUri);
+// cred: the credential stored on-device. request: { currentDateInt, currentYY, minAge }.
+// proverUrl: base URL of the prover service (the issuer).
+async function generateProofPayload(cred, request, proverUrl) {
+  const res = await fetch(`${proverUrl}/prove`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ cred, request }),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try {
+      detail = (await res.json()).error || "";
+    } catch {}
+    throw new Error(`prover error ${res.status}${detail ? `: ${detail}` : ""}`);
+  }
+  const { proof, publicSignals } = await res.json();
   return encodeProofPayload(proof, publicSignals);
 }
 
-module.exports = { buildCircuitInput, generateProofPayload };
+module.exports = { generateProofPayload };
