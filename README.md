@@ -1,4 +1,11 @@
-# kage-mobile
+<h1 align="center">kage-mobile</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React%20Native-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React Native">
+  <img src="https://img.shields.io/badge/Expo-000?style=flat-square&logo=expo&logoColor=white" alt="Expo">
+  <img src="https://img.shields.io/badge/Groth16-2D7FF9?style=flat-square" alt="Groth16">
+  <img src="https://img.shields.io/badge/Zero--Knowledge-6E56CF?style=flat-square" alt="Zero-Knowledge">
+</p>
 
 The wallet that holds a user's KTP identity and proves age ≥ 18 on-device — without ever exposing the NIK, name, or date of birth.
 
