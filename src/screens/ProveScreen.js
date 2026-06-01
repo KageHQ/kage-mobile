@@ -4,7 +4,7 @@ import QRCode from "react-native-qrcode-svg";
 import { Asset } from "expo-asset";
 import { loadCredential } from "../credentialStore";
 import { generateProofPayload } from "../prover";
-import { MIN_AGE } from "@proven-kyc/shared";
+import { MIN_AGE } from "@kagehq/shared";
 
 // Demo: fixed currentDate keeps the witness deterministic.
 const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE };

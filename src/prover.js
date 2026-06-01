@@ -1,5 +1,5 @@
 const { groth16 } = require("snarkjs");
-const { encodeProofPayload } = require("@proven-kyc/shared");
+const { encodeProofPayload } = require("@kagehq/shared");
 
 // Pure: map a stored credential + verification request into circuit inputs.
 function buildCircuitInput(cred, { currentDateInt, currentYY, minAge }) {
