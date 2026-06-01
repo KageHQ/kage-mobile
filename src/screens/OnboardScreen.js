@@ -3,7 +3,10 @@ import { View, TextInput, Button, Text } from "react-native";
 import { requestCredential } from "../issuerClient";
 import { saveCredential } from "../credentialStore";
 
-const ISSUER_URL = "http://10.0.2.2:4000"; // Android emulator -> host localhost
+// Override per platform via EXPO_PUBLIC_ISSUER_URL (e.g. your Mac's LAN IP for a
+// physical phone). Default is the Android emulator alias for host localhost.
+const ISSUER_URL =
+  process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
 
 export default function OnboardScreen({ onDone }) {
   const [nik, setNik] = useState("");
