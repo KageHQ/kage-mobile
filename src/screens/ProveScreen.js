@@ -25,8 +25,11 @@ const EVENT_ID = process.env.EXPO_PUBLIC_EVENT_ID || "1001";
 // Demo: fixed currentDate keeps the witness deterministic.
 const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE, scope: EVENT_ID };
 
-// The prover service is the issuer (same host). Override via EXPO_PUBLIC_ISSUER_URL.
-const PROVER_URL = process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
+// The prover service is the issuer (same host). Default is the deployed issuer;
+// override via EXPO_PUBLIC_ISSUER_URL (e.g. http://10.0.2.2:4000 for the emulator
+// against a local issuer).
+const PROVER_URL =
+  process.env.EXPO_PUBLIC_ISSUER_URL || "https://kage-issuer.theola.dev";
 
 // "Bukti" tab: the single primary task — generate a one-time relay code. The
 // device-local profile lives on the Identitas tab; reset lives on Pengaturan.

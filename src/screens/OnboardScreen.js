@@ -18,10 +18,11 @@ import {
 } from "../components/ui";
 import { space } from "../theme";
 
-// Override per platform via EXPO_PUBLIC_ISSUER_URL (e.g. your Mac's LAN IP for a
-// physical phone). Default is the Android emulator alias for host localhost.
+// Default is the deployed issuer. Override via EXPO_PUBLIC_ISSUER_URL (e.g.
+// http://10.0.2.2:4000 for the emulator against a local issuer, or your Mac's
+// LAN IP for a physical phone on the same network).
 const ISSUER_URL =
-  process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
+  process.env.EXPO_PUBLIC_ISSUER_URL || "https://kage-issuer.theola.dev";
 
 export default function OnboardScreen({ onDone }) {
   const [nik, setNik] = useState("");
