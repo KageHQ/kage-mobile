@@ -22,4 +22,17 @@ async function generateProofPayload(cred, request, proverUrl) {
   return encodeProofPayload(proof, publicSignals);
 }
 
-module.exports = { generateProofPayload };
+// Publishes an encoded payload to the issuer's relay; returns a short code the
+// verifier types in to fetch it. Avoids screen-to-camera QR scanning.
+async function publishPayload(payload, proverUrl) {
+  const res = await fetch(`${proverUrl}/relay`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ payload }),
+  });
+  if (!res.ok) throw new Error(`relay error ${res.status}`);
+  const { code } = await res.json();
+  return code;
+}
+
+module.exports = { generateProofPayload, publishPayload };

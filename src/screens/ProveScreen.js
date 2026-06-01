@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { View, Button, Text, ActivityIndicator } from "react-native";
-import QRCode from "react-native-qrcode-svg";
 import { loadCredential } from "../credentialStore";
-import { generateProofPayload } from "../prover";
+import { generateProofPayload, publishPayload } from "../prover";
 import { MIN_AGE } from "@kagehq/shared/src/constants";
 
 // Demo: fixed currentDate keeps the witness deterministic.
@@ -12,17 +11,19 @@ const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE };
 const PROVER_URL = process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
 
 export default function ProveScreen({ onReset }) {
-  const [payload, setPayload] = useState(null);
+  const [code, setCode] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
   async function onProve() {
     setBusy(true);
     setError(null);
+    setCode(null);
     try {
       const cred = await loadCredential();
-      const p = await generateProofPayload(cred, REQUEST, PROVER_URL);
-      setPayload(p);
+      const payload = await generateProofPayload(cred, REQUEST, PROVER_URL);
+      const c = await publishPayload(payload, PROVER_URL);
+      setCode(c);
     } catch (e) {
       setError(String(e?.message || e));
     } finally {
@@ -35,10 +36,15 @@ export default function ProveScreen({ onReset }) {
       <Button title="Generate age≥18 proof" onPress={onProve} disabled={busy} />
       {busy && <ActivityIndicator />}
       {error && <Text style={{ color: "#c00" }}>{error}</Text>}
-      {/* ecl "L" = least error-correction overhead -> fewer modules -> the dense
-          proof payload is easier for a webcam to resolve. */}
-      {payload && <QRCode value={payload} size={320} ecl="L" />}
-      {payload && <Text>Show this QR to the verifier. No personal data is inside.</Text>}
+      {code && (
+        <View style={{ alignItems: "center", gap: 8, marginTop: 8 }}>
+          <Text style={{ fontSize: 16, color: "#555" }}>Enter this code on the verifier:</Text>
+          <Text style={{ fontSize: 56, fontWeight: "bold", letterSpacing: 8 }}>{code}</Text>
+          <Text style={{ fontSize: 13, color: "#777" }}>
+            Valid 5 min · one-time · no personal data inside.
+          </Text>
+        </View>
+      )}
       <View style={{ marginTop: 24 }}>
         <Button title="Re-enter NIK (reset credential)" color="#c00" onPress={onReset} />
       </View>
