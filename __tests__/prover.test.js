@@ -8,7 +8,7 @@ test("generateProofPayload posts to the prover and returns an encoded payload", 
       ok: true,
       json: async () => ({
         proof: { pi_a: ["1", "2"], pi_b: [["3", "4"], ["5", "6"]], pi_c: ["7", "8"] },
-        publicSignals: ["0", "1", "2", "3", "4", "77"],
+        publicSignals: ["0", "1", "2", "3", "4", "77", "1001"],
       }),
     };
   };
@@ -16,7 +16,7 @@ test("generateProofPayload posts to the prover and returns an encoded payload", 
   const cred = { nik: "3174071708950001", name: "12345" };
   const payload = await generateProofPayload(
     cred,
-    { currentDateInt: 20260601, currentYY: 26, minAge: 18 },
+    { currentDateInt: 20260601, currentYY: 26, minAge: 18, scope: "1001" },
     "http://prover.test"
   );
 
