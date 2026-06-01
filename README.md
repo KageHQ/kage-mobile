@@ -2,7 +2,7 @@
 
 The wallet that holds a user's KTP identity and proves age ≥ 18 on-device — without ever exposing the NIK, name, or date of birth.
 
-This React Native / Expo app is the **only component in proven-kyc that touches PII**. It onboards the NIK, fetches a signed credential from the issuer, generates a Groth16 proof locally (~5–15 s), and renders a QR that contains the proof only — never personal data.
+This React Native / Expo app is the **only component in Kage that touches PII**. It onboards the NIK, fetches a signed credential from the issuer, generates a Groth16 proof locally (~5–15 s), and renders a QR that contains the proof only — never personal data.
 
 ## Role in the system
 
