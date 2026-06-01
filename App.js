@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { SafeAreaView, Text } from "react-native";
 import OnboardScreen from "./src/screens/OnboardScreen";
-import { hasCredential } from "./src/credentialStore";
+import { hasCredential, clearCredential } from "./src/credentialStore";
 
 // Lazy so snarkjs (heavy, Node-builtin-dependent) only loads when we actually
 // prove — not at app startup, which would blank the Onboard screen too.
@@ -14,11 +14,17 @@ export default function App() {
       .then(setOnboarded)
       .catch(() => setOnboarded(false));
   }, []);
+
+  async function reset() {
+    await clearCredential();
+    setOnboarded(false);
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       {onboarded ? (
         <Suspense fallback={<Text style={{ padding: 24 }}>Loading prover…</Text>}>
-          <ProveScreen />
+          <ProveScreen onReset={reset} />
         </Suspense>
       ) : (
         <OnboardScreen onDone={() => setOnboarded(true)} />

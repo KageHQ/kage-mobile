@@ -11,7 +11,7 @@ const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE };
 // The prover service is the issuer (same host). Override via EXPO_PUBLIC_ISSUER_URL.
 const PROVER_URL = process.env.EXPO_PUBLIC_ISSUER_URL || "http://10.0.2.2:4000";
 
-export default function ProveScreen() {
+export default function ProveScreen({ onReset }) {
   const [payload, setPayload] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -35,8 +35,13 @@ export default function ProveScreen() {
       <Button title="Generate age≥18 proof" onPress={onProve} disabled={busy} />
       {busy && <ActivityIndicator />}
       {error && <Text style={{ color: "#c00" }}>{error}</Text>}
-      {payload && <QRCode value={payload} size={280} />}
+      {/* ecl "L" = least error-correction overhead -> fewer modules -> the dense
+          proof payload is easier for a webcam to resolve. */}
+      {payload && <QRCode value={payload} size={320} ecl="L" />}
       {payload && <Text>Show this QR to the verifier. No personal data is inside.</Text>}
+      <View style={{ marginTop: 24 }}>
+        <Button title="Re-enter NIK (reset credential)" color="#c00" onPress={onReset} />
+      </View>
     </View>
   );
 }
