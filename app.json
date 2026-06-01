@@ -12,6 +12,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#FEFDFB"
     },
+    "android": {
+      "package": "com.kagehq.kage",
+      "versionCode": 1
+    },
     "assetBundlePatterns": ["assets/*"]
   }
 }

@@ -4,6 +4,7 @@ import {
   Text,
   Animated,
   Easing,
+  ActivityIndicator,
   AccessibilityInfo,
   StyleSheet,
 } from "react-native";
@@ -17,7 +18,7 @@ import { Logo } from "../components/ui";
 // credential check is still pending when the animation ends, a faded-to-zero
 // splash would leave a blank screen. onFinish fires on a guaranteed timer (min
 // display time), independent of the animation callbacks.
-const MIN_VISIBLE_MS = 1400;
+const MIN_VISIBLE_MS = 6000;
 
 export default function SplashScreen({ onFinish }) {
   // One value per animated element so they can be staggered independently.
@@ -29,6 +30,7 @@ export default function SplashScreen({ onFinish }) {
   const wordY = useRef(new Animated.Value(12)).current;
   const tagOpacity = useRef(new Animated.Value(0)).current;
   const tagY = useRef(new Animated.Value(10)).current;
+  const spinnerOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +55,12 @@ export default function SplashScreen({ onFinish }) {
         toValue: 1,
         duration: 220,
         delay: 80,
+        useNativeDriver: true,
+      }).start();
+      Animated.timing(spinnerOpacity, {
+        toValue: 1,
+        duration: 220,
+        delay: 160,
         useNativeDriver: true,
       }).start();
     }
@@ -125,6 +133,13 @@ export default function SplashScreen({ onFinish }) {
             useNativeDriver: true,
           }),
         ]),
+        // Boot spinner fades in last — signals the app is getting ready.
+        Animated.timing(spinnerOpacity, {
+          toValue: 1,
+          duration: 300,
+          delay: 120,
+          useNativeDriver: true,
+        }),
       ]).start();
     }
 
@@ -142,6 +157,7 @@ export default function SplashScreen({ onFinish }) {
         wordY.setValue(0);
         tagOpacity.setValue(1);
         tagY.setValue(0);
+        spinnerOpacity.setValue(1);
       });
 
     const t = setTimeout(() => {
@@ -182,6 +198,10 @@ export default function SplashScreen({ onFinish }) {
       >
         Bukti usia, privasi tetap milik Anda.
       </Animated.Text>
+
+      <Animated.View style={[s.spinner, { opacity: spinnerOpacity }]}>
+        <ActivityIndicator color={color.accent} />
+      </Animated.View>
     </View>
   );
 }
@@ -218,4 +238,5 @@ const s = StyleSheet.create({
     color: color.inkMuted,
     textAlign: "center",
   },
+  spinner: { marginTop: space[8] },
 });

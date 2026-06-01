@@ -31,8 +31,8 @@ export const Caption = (p) => <Text {...p} style={[type.caption, p.style]} />;
 // ── Logo tile ─────────────────────────────────────────────────────────────────
 // The logo art is dark-on-white, so it sits in a rounded white tile (reads as an
 // app icon) rather than floating on warm paper. `size` is the tile edge.
-export function Logo({ size = 28, style }) {
-  const pad = Math.round(size * 0.16);
+export function Logo({ size = 28, style, padRatio = 0.16 }) {
+  const pad = Math.round(size * padRatio);
   return (
     <View
       style={[
@@ -47,10 +47,13 @@ export function Logo({ size = 28, style }) {
 }
 
 // ── Brand mark ────────────────────────────────────────────────────────────────
+// Header lockup. The mark art already carries generous internal whitespace, so
+// the header tile uses near-zero inner padding and a soft shadow instead of a
+// hard border — reads as a crisp app icon, not a bordered sticker.
 export function Brandmark() {
   return (
     <View style={s.brand} accessibilityRole="header" accessibilityLabel="Kage">
-      <Logo size={28} />
+      <Logo size={34} padRatio={0.04} style={s.brandLogo} />
       <Text style={s.brandName}>Kage</Text>
     </View>
   );
@@ -296,17 +299,26 @@ const s = StyleSheet.create({
     paddingBottom: space[9],
   },
 
-  brand: { flexDirection: "row", alignItems: "center", gap: space[2] },
+  brand: { flexDirection: "row", alignItems: "center", gap: space[3] },
   logoTile: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: color.line,
   },
+  // Header tile: drop the hard border for a soft shadow; reads as an app icon.
+  brandLogo: {
+    borderWidth: 0,
+    shadowColor: "#1C1A17",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
   brandName: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: color.ink,
-    letterSpacing: 0.2,
+    letterSpacing: -0.4,
   },
 
   // Button
