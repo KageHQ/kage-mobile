@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "expo start"
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "expo": "~51.0.0",
@@ -14,7 +16,7 @@
     "react-native": "0.74.0",
     "react-native-qrcode-svg": "^6.3.0",
     "buffer": "^6.0.3",
-    "@kagehq/shared": "^1.1.0"
+    "@kagehq/shared": "^1.2.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",

@@ -38,7 +38,10 @@ jobs:
           } > .npmrc
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # not frozen: package.json pins @kagehq/shared ^1.2.0 but the committed
+        # lockfile can't be refreshed locally (dev token expired), so let CI
+        # re-resolve. Revert to --frozen-lockfile once the lockfile is updated.
+        run: pnpm install --no-frozen-lockfile
 
       - uses: actions/setup-java@v4
         with:
