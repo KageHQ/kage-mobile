@@ -1,64 +1,121 @@
-# proven-kyc mobile
+# kage-mobile
 
-React Native / Expo app that lets a user onboard with a KYC credential and generate a zero-knowledge age proof displayed as a QR code.
+React Native / Expo app — the wallet that holds a user's KTP identity and proves age ≥ 18 on-device without ever exposing the NIK, name, or date of birth.
 
-## Pre-requisites
+## Role in the system
 
-Node 18+, pnpm, and the [Expo CLI](https://docs.expo.dev/get-started/installation/) installed.
+```
+kage-mobile  ──credential request──▶  kage-issuer (signs KTP credential)
+             ◀──signed credential──
 
-## Setup
-
-### 1. Build the circuit artifacts
-
-The app bundles the compiled Circom circuit (`.wasm`) and proving key (`.zkey`). Build them first:
-
-```bash
-pnpm --filter @proven-kyc/circuits build
+kage-mobile  ──on-device Groth16 proof (snarkjs, ~5–15 s)──▶  QR code
+                                                              (proof + public signals, NO PII)
+                                                                    │
+                                                               kage-web (scans QR)
+                                                                    │
+                                                             kage-program (verifies on-chain,
+                                                                           rejects replays via nullifier)
 ```
 
-### 2. Copy artifacts into `mobile/assets/`
+The mobile app is the only component that ever touches PII. After onboarding the raw NIK is encrypted in the OS keystore and never leaves the device.
 
-```bash
-mkdir -p mobile/assets
-cp circuits/build/age_kyc_js/age_kyc.wasm mobile/assets/
-cp circuits/build/age_kyc.zkey mobile/assets/
+## Screens
+
+### Onboard (`src/screens/OnboardScreen.js`)
+
+First-run screen. The user enters their 16-digit NIK, which is posted to `kage-issuer /sign` (`src/issuerClient.js`). The issuer returns a signed credential (EdDSA public key, signature, nullifier hash, secret). The credential is persisted via `expo-secure-store` (iOS Keychain / Android Keystore) by `src/credentialStore.js`. On subsequent launches this screen is skipped.
+
+### Prove (`src/screens/ProveScreen.js`)
+
+Main screen once onboarded. Tapping **Generate age ≥ 18 proof** runs `snarkjs groth16.fullProve` inside `src/prover.js` against the bundled wasm + zkey circuit assets. The resulting proof and public signals are encoded into a QR payload via `@kagehq/shared encodeProofPayload` and rendered as a QR code. The QR contains **no PII** — only the cryptographic proof and public signals.
+
+## Circuit assets
+
+`@kagehq/circuits` ships the compiled Circom artefacts:
+
+| File | Source package path |
+|------|---------------------|
+| `assets/age_kyc.wasm` | `@kagehq/circuits/build/age_kyc_js/age_kyc.wasm` |
+| `assets/age_kyc.zkey` | `@kagehq/circuits/build/age_kyc.zkey` |
+
+The `postinstall` script in `package.json` copies them automatically on every `pnpm install`:
+
+```json
+"postinstall": "mkdir -p assets && cp node_modules/@kagehq/circuits/build/age_kyc_js/age_kyc.wasm assets/ && cp node_modules/@kagehq/circuits/build/age_kyc.zkey assets/"
 ```
 
-These files are gitignored (large generated binaries — never commit them).
+`assets/` is gitignored — these are large generated binaries regenerated on install.
 
-### 3. Start the issuer server
+## Install
 
-```bash
-pnpm --filter @proven-kyc/issuer start
-```
-
-The issuer listens on `localhost:4000`. The app is pre-configured to reach it at
-`http://10.0.2.2:4000` (the Android emulator's alias for the host machine).
-
-> **Physical device:** replace `10.0.2.2` with your host machine's LAN IP address
-> in `src/screens/OnboardScreen.js`.
-
-### 4. Start the Expo dev server
+> `@kagehq/shared` and `@kagehq/circuits` are published to GitHub Packages. You need a `.npmrc` that routes the `@kagehq` scope there:
+>
+> ```
+> @kagehq:registry=https://npm.pkg.github.com
+> //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+> ```
+>
+> The PAT needs the `read:packages` scope. **Never commit it.**
 
 ```bash
-pnpm --filter @proven-kyc/mobile start
+pnpm install          # also runs postinstall → copies wasm + zkey into assets/
 ```
 
-Open the Expo Go app on your device/emulator and scan the QR code that appears in
-the terminal, or press `a` to launch directly on a connected Android emulator.
+## Run
 
-## Manual smoke test
+**Prerequisites:** Node 18+, pnpm, [Expo CLI](https://docs.expo.dev/get-started/installation/).
 
-1. Launch the app — the **Onboard** screen appears (no credential stored yet).
-2. Enter a 16-digit NIK and tap **Verify identity (one time)**.
-3. The app requests a credential from the issuer and stores it encrypted on-device.
-4. The app transitions to the **Prove** screen.
-5. Tap **Generate age≥18 proof** — the ZK proof is generated on-device (takes ~5–15 s).
-6. A QR code renders. Scan it with the verifier to confirm the proof is valid.
-   No personal data is encoded in the QR — only the proof and public signals.
+Start the Expo dev server:
 
-## Notes
+```bash
+pnpm start
+```
 
-- Credentials are stored using `expo-secure-store` (iOS Keychain / Android Keystore).
-- The `currentDateInt` in `ProveScreen` is fixed to `20260601` to keep the witness
-  deterministic during development. Change it to `Date.now()` logic for production.
+Open Expo Go on your device / emulator and scan the terminal QR code, or press `a` to launch on a connected Android emulator.
+
+### Issuer URL
+
+The app is pre-configured for the Android emulator host alias:
+
+```js
+// src/screens/OnboardScreen.js
+const ISSUER_URL = "http://10.0.2.2:4000";
+```
+
+| Target | URL to use |
+|--------|-----------|
+| Android emulator | `http://10.0.2.2:4000` (default, host `localhost`) |
+| Physical device / iOS simulator | Replace with the host machine's LAN IP or `http://localhost:4000` |
+
+[kage-issuer](https://github.com/KageHQ/kage-issuer) must be running on port 4000.
+
+### Demo NIK
+
+```
+3174071708950001
+```
+
+Male, born 1995-08-17 — age ≥ 18 check passes.
+
+## Test
+
+```bash
+pnpm test
+```
+
+Runs the Jest suite under `__tests__/`.
+
+## Privacy note
+
+After onboarding, the NIK is encrypted at rest in the OS keystore and never transmitted again. The QR code that the verifier scans contains **only the Groth16 proof and public signals** — no NIK, no name, no date of birth.
+
+## Sibling repos
+
+| Repo | Role |
+|------|------|
+| [kage-shared](https://github.com/KageHQ/kage-shared) | Shared types, proof codec, `MIN_AGE` constant |
+| [kage-circuits](https://github.com/KageHQ/kage-circuits) | Circom circuit, wasm + zkey build |
+| [kage-issuer](https://github.com/KageHQ/kage-issuer) | EdDSA credential signing server |
+| [kage-program](https://github.com/KageHQ/kage-program) | Solana on-chain Groth16 verifier + nullifier PDA |
+| [kage-web](https://github.com/KageHQ/kage-web) | Browser verifier — scans QR, submits to Solana |
+| [kage-e2e](https://github.com/KageHQ/kage-e2e) | End-to-end happy-path tests |
