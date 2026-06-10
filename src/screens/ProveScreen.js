@@ -22,8 +22,19 @@ import { space } from "../theme";
 // must match the verifier gate's VITE_EVENT_ID.
 const EVENT_ID = process.env.EXPO_PUBLIC_EVENT_ID || "1001";
 
-// Demo: fixed currentDate keeps the witness deterministic.
-const REQUEST = { currentDateInt: 20260601, currentYY: 26, minAge: MIN_AGE, scope: EVENT_ID };
+// The on-chain program anchors the proof's committed date to the validator
+// clock (±1 day), so the request must carry today's UTC date.
+function buildRequest() {
+  const now = new Date();
+  const currentDateInt =
+    now.getUTCFullYear() * 10000 + (now.getUTCMonth() + 1) * 100 + now.getUTCDate();
+  return {
+    currentDateInt,
+    currentYY: now.getUTCFullYear() % 100,
+    minAge: MIN_AGE,
+    scope: EVENT_ID,
+  };
+}
 
 // The prover service is the issuer (same host). Default is the deployed issuer;
 // override via EXPO_PUBLIC_ISSUER_URL (e.g. http://10.0.2.2:4000 for the emulator
@@ -44,7 +55,7 @@ export default function ProveScreen() {
     setCode(null);
     try {
       const cred = await loadCredential();
-      const payload = await generateProofPayload(cred, REQUEST, PROVER_URL);
+      const payload = await generateProofPayload(cred, buildRequest(), PROVER_URL);
       const c = await publishPayload(payload, PROVER_URL);
       setCode(c);
     } catch (e) {
